@@ -13,6 +13,7 @@ pub struct Car {
     pub width: f32,
     pub height: f32,
     pub max_speed: f32,
+    pub rotation_speed: f32,
     pub friction: f32,
     pub angle: f32,
     pub sensors: Sensors,
@@ -27,6 +28,7 @@ impl Car {
             speed: 0.0,
             acceleration: 0.2,
             max_speed: 3.0,
+            rotation_speed: 0.04,
             friction: 0.05,
             width: width,
             height: height,
@@ -92,12 +94,13 @@ impl Car {
         //TURNING
 
         if self.speed != 0.0 {
-            let flip: i8 = if self.speed > 0.0 { 1 } else { -1 };
+            // let flip: i8 = if self.speed > 0.0 { 1 } else { -1 };
+            // let flip = 1.0;
             if self.controlls.left {
-                self.angle += 0.03 * flip as f32;
+                self.angle += self.rotation_speed * (self.speed / self.max_speed);
             }
             if self.controlls.right {
-                self.angle -= 0.03 * flip as f32;
+                self.angle -= self.rotation_speed * (self.speed / self.max_speed);
             }
         }
 
