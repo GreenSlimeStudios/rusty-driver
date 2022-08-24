@@ -1,6 +1,8 @@
 pub mod car;
+pub mod road;
 
 use car::*;
+use road::*;
 
 use macroquad::prelude::*;
 
@@ -8,16 +10,20 @@ use macroquad::prelude::*;
 async fn main() {
     let texture: Texture2D = load_texture("assets/car.png").await.unwrap();
 
+    let mut road: Road = Road::new(screen_width() / 2.0, screen_width() * 0.5, 4);
+
     let mut car: Car = Car::new(
-        screen_width() / 2. - 20.,
+        road.get_lane_center(1) - 16.0,
         screen_height() / 2. - 40.,
         40.,
         80.,
     );
 
     loop {
-        clear_background(WHITE);
+        clear_background(BLACK);
         car.update_car();
+
+        road.draw();
 
         draw_rectangle(car.x, car.y, car.width, car.height, WHITE);
         draw_texture_ex(
