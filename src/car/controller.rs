@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Controlls {
     pub left: bool,
     pub right: bool,

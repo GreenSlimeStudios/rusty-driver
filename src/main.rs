@@ -10,8 +10,8 @@ fn window_conf() -> Conf {
     Conf {
         window_title: "rusty driver".to_owned(),
         // fullscreen: true,
-        window_height: 800,
-        window_width: 1200,
+        window_height: 1000,
+        window_width: 1000,
         ..Default::default()
     }
 }
@@ -38,7 +38,7 @@ async fn main() {
     );
 
     loop {
-        my_camera.target = Vec2::new(150.0, car.y - 200.0);
+        my_camera.target = Vec2::new(100.0, car.opts.y - 200.0);
         my_camera.rotation = 180.0;
         my_camera.viewport = Some((
             0,
@@ -50,25 +50,10 @@ async fn main() {
         set_camera(&my_camera);
 
         clear_background(BLACK);
-        car.update_car();
+        car.update(&road.borders);
 
-        road.draw(&car.y);
-
-        draw_rectangle(car.x, car.y, car.width, car.height, WHITE);
-        draw_texture_ex(
-            texture,
-            car.x,
-            car.y,
-            WHITE,
-            DrawTextureParams {
-                dest_size: None,
-                source: None,
-                rotation: -car.angle,
-                pivot: None,
-                flip_x: false,
-                flip_y: false,
-            },
-        );
+        road.draw(&car.opts.y);
+        car.draw(texture);
 
         // set_camera(&Camera2D {
         //     zoom: vec2(1., screen_width() / screen_height()),
