@@ -65,7 +65,7 @@ impl Car {
         // println!("right: {}", self.controlls.right);
         // println!("forward: {}", self.controlls.forward);
         // println!("reverse: {}", self.controlls.reverse);
-        println!("rotation: {}", self.angle);
+        // println!("rotation: {}", self.angle);
 
         // FORWARD BACKWARD SPEED
         if self.controlls.reverse {
@@ -95,12 +95,12 @@ impl Car {
 
         if self.speed != 0.0 {
             // let flip: i8 = if self.speed > 0.0 { 1 } else { -1 };
-            // let flip = 1.0;
+            let flip = -1.0;
             if self.controlls.left {
-                self.angle += self.rotation_speed * (self.speed / self.max_speed);
+                self.angle += flip * self.rotation_speed * (self.speed / self.max_speed);
             }
             if self.controlls.right {
-                self.angle -= self.rotation_speed * (self.speed / self.max_speed);
+                self.angle -= flip * self.rotation_speed * (self.speed / self.max_speed);
             }
         }
 
