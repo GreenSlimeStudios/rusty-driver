@@ -1,3 +1,4 @@
+use crate::car::Car;
 use crate::car::CarOptions;
 use macroquad::prelude::*;
 
@@ -8,6 +9,7 @@ pub struct Sensors {
     ray_spread: f32,
     rays: Vec<Vec<Vec2>>,
     readings: Vec<Option<IntersectionResult>>,
+    pub active: bool,
 }
 
 impl Sensors {
@@ -19,24 +21,27 @@ impl Sensors {
             ray_spread: std::f32::consts::PI / 2.0,
             rays: Vec::new(),
             readings: Vec::new(),
+            active: true,
         }
     }
     pub fn default() -> Self {
         Self {
             car_options: CarOptions::default(),
             ray_count: 3,
-            ray_length: 150.0,
+            ray_length: 0.0,
             ray_spread: std::f32::consts::PI * 2.0,
             rays: Vec::new(),
             readings: Vec::new(),
+            active: false,
         }
     }
-    pub fn update(&mut self, opts: CarOptions, road_borders: &Vec<Vec<Vec2>>) {
+    pub fn update(&mut self, opts: CarOptions, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>) {
         self.car_options = opts;
         self.cast_rays();
         self.readings = Vec::new();
         for i in 0..self.rays.len() {
-            self.readings.push(get_reading(&self.rays[i], road_borders));
+            self.readings
+                .push(get_reading(&self.rays[i], road_borders, traffic));
         }
     }
     // fn get_reading(&mut self, ray: Vec<Vec2>, road_borders: Vec<Vec<Vec2>>) -> f32 {
@@ -51,10 +56,15 @@ impl Sensors {
                 i as f32 / (self.ray_count - 1) as f32,
             ) + self.car_options.angle;
 
-            let start: Vec2 = Vec2::new(self.car_options.x + 20.0, self.car_options.y + 40.0);
+            let start: Vec2 = Vec2::new(
+                self.car_options.x + self.car_options.width / 2.0,
+                self.car_options.y + self.car_options.height / 2.0,
+            );
             let end: Vec2 = Vec2::new(
-                self.car_options.x - ray_angle.sin() * self.ray_length + 20.0,
-                self.car_options.y - ray_angle.cos() * self.ray_length + 40.0,
+                self.car_options.x - ray_angle.sin() * self.ray_length
+                    + self.car_options.width / 2.0,
+                self.car_options.y - ray_angle.cos() * self.ray_length
+                    + self.car_options.height / 2.0,
             );
 
             self.rays.push(vec![start, end]);
@@ -93,7 +103,11 @@ impl Sensors {
 pub fn lerp(A: f32, B: f32, t: f32) -> f32 {
     return A + (B - A) * t;
 }
-fn get_reading(ray: &Vec<Vec2>, road_borders: &Vec<Vec<Vec2>>) -> Option<IntersectionResult> {
+fn get_reading(
+    ray: &Vec<Vec2>,
+    road_borders: &Vec<Vec<Vec2>>,
+    traffic: &Vec<Car>,
+) -> Option<IntersectionResult> {
     let mut touches: Vec<IntersectionResult> = Vec::new();
 
     for border in road_borders {
@@ -106,21 +120,30 @@ fn get_reading(ray: &Vec<Vec2>, road_borders: &Vec<Vec<Vec2>>) -> Option<Interse
             None => (),
         }
     }
+    for d in 0..traffic.len() {
+        let poly = &traffic[d].opts.polygon;
+        for e in 0..poly.len() {
+            match get_intersection(ray[0], ray[1], poly[e], poly[(e + 1) % poly.len()]) {
+                Some(v) => {
+                    touches.push(v);
+                }
+                None => (),
+            }
+        }
+    }
     if touches.len() == 0 {
         return None;
     } else {
-        // let offsets:Vec<f32> = touches.into_iter().map(|val| {return val.offset}).collect();
-        // let mut min_value:f32 = 200.0;
-        // for val in offsets{
-        //     if val < min_value {min_value = val;}
-        // }
-        let min_touch: IntersectionResult = touches
-            .into_iter()
-            .min_by(|x, y| x.offset.total_cmp(&y.offset))?;
-        return Some(min_touch);
+        println!("{:?}", touches.len());
+        return Some(
+            touches
+                .into_iter()
+                .min_by(|a, b| a.offset.total_cmp(&b.offset))
+                .unwrap(),
+        );
     }
 }
-
+#[derive(Clone, Copy)]
 pub struct IntersectionResult {
     x: f32,
     y: f32,
@@ -145,4 +168,49 @@ pub fn get_intersection(A: Vec2, B: Vec2, C: Vec2, D: Vec2) -> Option<Intersecti
     }
 
     return None;
+}
+
+pub fn get_poly_intersection(poly1: &Vec<Vec2>, poly2: &Vec<Vec2>) -> bool {
+    for i in 0..poly1.len() {
+        for j in 0..poly2.len() {
+            match get_intersection(
+                poly1[i],
+                poly1[(i + 1) % poly1.len()],
+                poly2[j],
+                poly2[(j + 1) % poly2.len()],
+            ) {
+                Some(_v) => {
+                    return true;
+                }
+                None => (),
+            }
+        }
+    }
+    false
+}
+pub fn get_poly_intersection_detailes(
+    poly1: &Vec<Vec2>,
+    poly2: &Vec<Vec2>,
+) -> Option<Vec<IntersectionResult>> {
+    let mut touches: Vec<IntersectionResult> = Vec::new();
+    for i in 0..poly1.len() {
+        for j in 0..poly2.len() {
+            match get_intersection(
+                poly1[i],
+                poly1[(i + 1) % poly1.len()],
+                poly2[j],
+                poly2[(j + 1) % poly2.len()],
+            ) {
+                Some(v) => {
+                    touches.push(v);
+                }
+                None => (),
+            }
+        }
+    }
+
+    if touches.len() > 0 {
+        return Some(touches);
+    }
+    None
 }

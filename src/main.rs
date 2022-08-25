@@ -31,13 +31,25 @@ async fn main() {
     my_camera.zoom = Vec2::new(0.002, 0.002);
 
     let mut car: Car = Car::new(
-        road.get_lane_center(1) - 16.0,
+        road.get_lane_center(1) - 20.0,
         screen_height() / 2. - 40.,
         40.,
         80.,
+        true,
     );
+    let mut traffic: Vec<Car> = vec![Car::new(
+        road.get_lane_center(1) - 20.0,
+        -100.0,
+        40.0,
+        80.0,
+        false,
+    )];
 
     loop {
+        for i in 0..traffic.len() {
+            traffic[i].update(&road.borders, &Vec::new());
+        }
+
         my_camera.target = Vec2::new(100.0, car.opts.y - 200.0);
         my_camera.rotation = 180.0;
         my_camera.viewport = Some((
@@ -50,9 +62,13 @@ async fn main() {
         set_camera(&my_camera);
 
         clear_background(BLACK);
-        car.update(&road.borders);
-
+        car.update(&road.borders, &traffic);
+        // car.update(&vec![traffic[0].opts.polygon]);
         road.draw(&car.opts.y);
+
+        for i in 0..traffic.len() {
+            traffic[i].draw(texture);
+        }
         car.draw(texture);
 
         // set_camera(&Camera2D {

@@ -12,6 +12,7 @@ pub struct Car {
 }
 #[derive(Clone)]
 pub struct CarOptions {
+    pub is_main_car: bool,
     pub x: f32,
     pub y: f32,
     pub speed: f32,
@@ -30,36 +31,38 @@ impl CarOptions {
     pub fn from_car(car: &Car) -> Self {
         return car.opts.clone();
     }
-    pub fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
+    pub fn new(x: f32, y: f32, width: f32, height: f32, is_main_car: bool) -> Self {
         Self {
+            is_main_car,
             x: x,
             y: y,
             speed: 0.0,
             acceleration: 0.2,
-            max_speed: 3.0,
+            max_speed: if is_main_car { 3.0 } else { 2.0 },
             rotation_speed: 0.03,
             friction: 0.05,
             width: width,
             height: height,
             angle: 0.0,
-            controlls: Controlls::new(),
+            controlls: Controlls::new(is_main_car),
             polygon: Vec::new(),
             damaged: false,
         }
     }
     pub fn default() -> Self {
         Self {
+            is_main_car: false,
             x: 0.0,
             y: 0.0,
             speed: 0.0,
             acceleration: 0.2,
-            max_speed: 3.0,
+            max_speed: 1.0,
             rotation_speed: 0.03,
             friction: 0.05,
             width: 500.0,
             height: 500.0,
             angle: 0.0,
-            controlls: Controlls::new(),
+            controlls: Controlls::new(false),
             polygon: Vec::new(),
             damaged: false,
         }
@@ -67,122 +70,111 @@ impl CarOptions {
 }
 
 impl Car {
-    pub fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
+    pub fn new(x: f32, y: f32, width: f32, height: f32, is_main_car: bool) -> Self {
         let mut car = Car {
-            opts: CarOptions::new(x, y, width, height),
+            opts: CarOptions::new(x, y, width, height, is_main_car),
             sensors: Sensors::default(),
         };
-        car.sensors = Sensors::new(car.opts.clone());
+        if is_main_car {
+            car.sensors = Sensors::new(car.opts.clone());
+        }
         return car;
     }
-    pub fn update(&mut self, road_borders: &Vec<Vec<Vec2>>) {
+    pub fn update(&mut self, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>) {
+        // if self.opts.damaged == false {
         self.move_car();
         self.opts.polygon = self.create_polygon();
-        self.opts.damaged = self.assess_demage(road_borders);
-        println!("{}", self.opts.damaged);
-        self.sensors.update(self.opts.clone(), road_borders);
+        self.opts.damaged = self.assess_demage(road_borders, traffic);
+        // }
+        if self.sensors.active {
+            self.sensors
+                .update(self.opts.clone(), road_borders, traffic);
+        }
     }
-    fn assess_demage(&self, road_borders: &Vec<Vec<Vec2>>) -> bool {
-        for i in 0..road_borders.len() {
-            match get_intersection(
-                self.opts.polygon[0],
-                self.opts.polygon[1],
-                road_borders[i][0],
-                road_borders[i][1],
-            ) {
-                Some(_v) => {
+    fn assess_demage(&self, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>) -> bool {
+        for i in 0..traffic.len() {
+            match get_poly_intersection(&self.opts.polygon, &traffic[i].opts.polygon) {
+                true => {
                     return true;
                 }
-                None => (),
-            }
-            match get_intersection(
-                self.opts.polygon[1],
-                self.opts.polygon[2],
-                road_borders[i][0],
-                road_borders[i][1],
-            ) {
-                Some(_v) => {
-                    return true;
-                }
-                None => (),
-            }
-            match get_intersection(
-                self.opts.polygon[2],
-                self.opts.polygon[3],
-                road_borders[i][0],
-                road_borders[i][1],
-            ) {
-                Some(_v) => {
-                    return true;
-                }
-                None => (),
-            }
-            match get_intersection(
-                self.opts.polygon[3],
-                self.opts.polygon[0],
-                road_borders[i][0],
-                road_borders[i][1],
-            ) {
-                Some(_v) => {
-                    return true;
-                }
-                None => (),
+                false => (),
             }
         }
-        false
+
+        for k in 0..road_borders.len() {
+            match get_poly_intersection(&self.opts.polygon, &road_borders[k]) {
+                true => {
+                    return true;
+                }
+                false => (),
+            }
+        }
+
+        return false;
     }
     fn create_polygon(&self) -> Vec<Vec2> {
         let mut points: Vec<Vec2> = Vec::new();
-        let rad = ((80.0 * 80.0 + 40.0 * 40.0) as f64).sqrt() / 2.0;
-        let alpha = libm::atan2(40.0, 80.0);
+        let rad = ((self.opts.height * self.opts.height + self.opts.width * self.opts.width)
+            as f64)
+            .sqrt()
+            / 2.0;
+        let alpha = libm::atan2(self.opts.width as f64, self.opts.height as f64);
         points.push(Vec2::new(
-            self.opts.x - (self.opts.angle - alpha as f32).sin() * rad as f32 + 20.0,
-            self.opts.y - (self.opts.angle - alpha as f32).cos() * rad as f32 + 40.0,
+            self.opts.x - (self.opts.angle - alpha as f32).sin() * rad as f32
+                + self.opts.width / 2.0,
+            self.opts.y - (self.opts.angle - alpha as f32).cos() * rad as f32
+                + self.opts.height / 2.0,
         ));
         points.push(Vec2::new(
-            self.opts.x - (self.opts.angle + alpha as f32).sin() * rad as f32 + 20.0,
-            self.opts.y - (self.opts.angle + alpha as f32).cos() * rad as f32 + 40.0,
+            self.opts.x - (self.opts.angle + alpha as f32).sin() * rad as f32
+                + self.opts.width / 2.0,
+            self.opts.y - (self.opts.angle + alpha as f32).cos() * rad as f32
+                + self.opts.height / 2.0,
         ));
         points.push(Vec2::new(
             self.opts.x
                 - (std::f32::consts::PI + self.opts.angle - alpha as f32).sin() * rad as f32
-                + 20.0,
+                + self.opts.width / 2.0,
             self.opts.y
                 - (std::f32::consts::PI + self.opts.angle - alpha as f32).cos() * rad as f32
-                + 40.0,
+                + self.opts.height / 2.0,
         ));
         points.push(Vec2::new(
             self.opts.x
                 - (std::f32::consts::PI + self.opts.angle + alpha as f32).sin() * rad as f32
-                + 20.0,
+                + self.opts.width / 2.0,
             self.opts.y
                 - (std::f32::consts::PI + self.opts.angle + alpha as f32).cos() * rad as f32
-                + 40.0,
+                + self.opts.height / 2.0,
         ));
         return points;
     }
     pub fn move_car(&mut self) {
-        if is_key_down(KeyCode::Right) || is_key_down(KeyCode::D) {
-            self.opts.controlls.right = true;
-        } else {
-            self.opts.controlls.right = false;
-        }
-        if is_key_down(KeyCode::Left) || is_key_down(KeyCode::A) {
-            self.opts.controlls.left = true;
-        } else {
-            self.opts.controlls.left = false;
-        }
-        if is_key_down(KeyCode::Up) || is_key_down(KeyCode::W) {
+        if self.opts.controlls.active == false {
             self.opts.controlls.forward = true;
         } else {
-            self.opts.controlls.forward = false;
+            if is_key_down(KeyCode::Right) || is_key_down(KeyCode::D) {
+                self.opts.controlls.right = true;
+            } else {
+                self.opts.controlls.right = false;
+            }
+            if is_key_down(KeyCode::Left) || is_key_down(KeyCode::A) {
+                self.opts.controlls.left = true;
+            } else {
+                self.opts.controlls.left = false;
+            }
+            if is_key_down(KeyCode::Up) || is_key_down(KeyCode::W) {
+                self.opts.controlls.forward = true;
+            } else {
+                self.opts.controlls.forward = false;
+            }
+            if is_key_down(KeyCode::Down) || is_key_down(KeyCode::S) {
+                self.opts.controlls.reverse = true;
+            } else {
+                self.opts.controlls.reverse = false;
+            }
+            // println!("left: {}", self.options.controlls.left);
         }
-        if is_key_down(KeyCode::Down) || is_key_down(KeyCode::S) {
-            self.opts.controlls.reverse = true;
-        } else {
-            self.opts.controlls.reverse = false;
-        }
-        // println!("left: {}", self.options.controlls.left);
         // println!("right: {}", self.options.controlls.right);
         // println!("forward: {}", self.options.controlls.forward);
         // println!("reverse: {}", self.options.controlls.reverse);
@@ -231,52 +223,34 @@ impl Car {
         self.opts.y -= self.opts.angle.cos() * self.opts.speed;
     }
     pub fn draw(&mut self, texture: Texture2D) {
-        draw_line(
-            self.opts.polygon[0].x,
-            self.opts.polygon[0].y,
-            self.opts.polygon[1].x,
-            self.opts.polygon[1].y,
-            3.0,
-            RED,
-        );
-        draw_line(
-            self.opts.polygon[1].x,
-            self.opts.polygon[1].y,
-            self.opts.polygon[2].x,
-            self.opts.polygon[2].y,
-            3.0,
-            RED,
-        );
-        draw_line(
-            self.opts.polygon[2].x,
-            self.opts.polygon[2].y,
-            self.opts.polygon[3].x,
-            self.opts.polygon[3].y,
-            3.0,
-            RED,
-        );
-        draw_line(
-            self.opts.polygon[3].x,
-            self.opts.polygon[3].y,
-            self.opts.polygon[0].x,
-            self.opts.polygon[0].y,
-            3.0,
-            RED,
-        );
-        // draw_texture_ex(
-        //     texture,
-        //     self.opts.x,
-        //     self.opts.y,
-        //     WHITE,
-        //     DrawTextureParams {
-        //         dest_size: None,
-        //         source: None,
-        //         rotation: -self.opts.angle,
-        //         pivot: None,
-        //         flip_x: false,
-        //         flip_y: false,
-        //     },
-        // );
-        self.sensors.draw();
+        for i in 0..self.opts.polygon.len() {
+            draw_line(
+                self.opts.polygon[i].x,
+                self.opts.polygon[i].y,
+                self.opts.polygon[(i + 1) % self.opts.polygon.len()].x,
+                self.opts.polygon[(i + 1) % self.opts.polygon.len()].y,
+                3.0,
+                if self.opts.is_main_car { RED } else { BLUE },
+            );
+        }
+        if self.opts.damaged {
+            draw_texture_ex(
+                texture,
+                self.opts.x,
+                self.opts.y,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: None,
+                    source: None,
+                    rotation: -self.opts.angle,
+                    pivot: None,
+                    flip_x: false,
+                    flip_y: false,
+                },
+            );
+        }
+        if self.sensors.active {
+            self.sensors.draw();
+        }
     }
 }
