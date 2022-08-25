@@ -24,6 +24,7 @@ pub struct CarOptions {
     pub angle: f32,
     pub controlls: Controlls,
     pub polygon: Vec<Vec2>,
+    pub damaged: bool,
 }
 impl CarOptions {
     pub fn from_car(car: &Car) -> Self {
@@ -43,6 +44,7 @@ impl CarOptions {
             angle: 0.0,
             controlls: Controlls::new(),
             polygon: Vec::new(),
+            damaged: false,
         }
     }
     pub fn default() -> Self {
@@ -59,6 +61,7 @@ impl CarOptions {
             angle: 0.0,
             controlls: Controlls::new(),
             polygon: Vec::new(),
+            damaged: false,
         }
     }
 }
@@ -75,7 +78,58 @@ impl Car {
     pub fn update(&mut self, road_borders: &Vec<Vec<Vec2>>) {
         self.move_car();
         self.opts.polygon = self.create_polygon();
+        self.opts.damaged = self.assess_demage(road_borders);
+        println!("{}", self.opts.damaged);
         self.sensors.update(self.opts.clone(), road_borders);
+    }
+    fn assess_demage(&self, road_borders: &Vec<Vec<Vec2>>) -> bool {
+        for i in 0..road_borders.len() {
+            match get_intersection(
+                self.opts.polygon[0],
+                self.opts.polygon[1],
+                road_borders[i][0],
+                road_borders[i][1],
+            ) {
+                Some(_v) => {
+                    return true;
+                }
+                None => (),
+            }
+            match get_intersection(
+                self.opts.polygon[1],
+                self.opts.polygon[2],
+                road_borders[i][0],
+                road_borders[i][1],
+            ) {
+                Some(_v) => {
+                    return true;
+                }
+                None => (),
+            }
+            match get_intersection(
+                self.opts.polygon[2],
+                self.opts.polygon[3],
+                road_borders[i][0],
+                road_borders[i][1],
+            ) {
+                Some(_v) => {
+                    return true;
+                }
+                None => (),
+            }
+            match get_intersection(
+                self.opts.polygon[3],
+                self.opts.polygon[0],
+                road_borders[i][0],
+                road_borders[i][1],
+            ) {
+                Some(_v) => {
+                    return true;
+                }
+                None => (),
+            }
+        }
+        false
     }
     fn create_polygon(&self) -> Vec<Vec2> {
         let mut points: Vec<Vec2> = Vec::new();

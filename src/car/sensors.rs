@@ -127,7 +127,7 @@ pub struct IntersectionResult {
     offset: f32,
 }
 
-fn get_intersection(A: Vec2, B: Vec2, C: Vec2, D: Vec2) -> Option<IntersectionResult> {
+pub fn get_intersection(A: Vec2, B: Vec2, C: Vec2, D: Vec2) -> Option<IntersectionResult> {
     let t_top = (D.x - C.x) * (A.y - C.y) - (D.y - C.y) * (A.x - C.x);
     let u_top = (C.y - A.y) * (A.x - B.x) - (C.x - A.x) * (A.y - B.y);
     let bottom = (D.y - C.y) * (B.x - A.x) - (D.x - C.x) * (B.y - A.y);
