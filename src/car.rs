@@ -23,6 +23,7 @@ pub struct CarOptions {
     pub friction: f32,
     pub angle: f32,
     pub controlls: Controlls,
+    pub polygon: Vec<Vec2>,
 }
 impl CarOptions {
     pub fn from_car(car: &Car) -> Self {
@@ -41,6 +42,7 @@ impl CarOptions {
             height: height,
             angle: 0.0,
             controlls: Controlls::new(),
+            polygon: Vec::new(),
         }
     }
     pub fn default() -> Self {
@@ -56,6 +58,7 @@ impl CarOptions {
             height: 500.0,
             angle: 0.0,
             controlls: Controlls::new(),
+            polygon: Vec::new(),
         }
     }
 }
@@ -71,7 +74,38 @@ impl Car {
     }
     pub fn update(&mut self, road_borders: &Vec<Vec<Vec2>>) {
         self.move_car();
+        self.opts.polygon = self.create_polygon();
         self.sensors.update(self.opts.clone(), road_borders);
+    }
+    fn create_polygon(&self) -> Vec<Vec2> {
+        let mut points: Vec<Vec2> = Vec::new();
+        let rad = ((80.0 * 80.0 + 40.0 * 40.0) as f64).sqrt() / 2.0;
+        let alpha = libm::atan2(40.0, 80.0);
+        points.push(Vec2::new(
+            self.opts.x - (self.opts.angle - alpha as f32).sin() * rad as f32 + 20.0,
+            self.opts.y - (self.opts.angle - alpha as f32).cos() * rad as f32 + 40.0,
+        ));
+        points.push(Vec2::new(
+            self.opts.x - (self.opts.angle + alpha as f32).sin() * rad as f32 + 20.0,
+            self.opts.y - (self.opts.angle + alpha as f32).cos() * rad as f32 + 40.0,
+        ));
+        points.push(Vec2::new(
+            self.opts.x
+                - (std::f32::consts::PI + self.opts.angle - alpha as f32).sin() * rad as f32
+                + 20.0,
+            self.opts.y
+                - (std::f32::consts::PI + self.opts.angle - alpha as f32).cos() * rad as f32
+                + 40.0,
+        ));
+        points.push(Vec2::new(
+            self.opts.x
+                - (std::f32::consts::PI + self.opts.angle + alpha as f32).sin() * rad as f32
+                + 20.0,
+            self.opts.y
+                - (std::f32::consts::PI + self.opts.angle + alpha as f32).cos() * rad as f32
+                + 40.0,
+        ));
+        return points;
     }
     pub fn move_car(&mut self) {
         if is_key_down(KeyCode::Right) || is_key_down(KeyCode::D) {
@@ -143,20 +177,52 @@ impl Car {
         self.opts.y -= self.opts.angle.cos() * self.opts.speed;
     }
     pub fn draw(&mut self, texture: Texture2D) {
-        draw_texture_ex(
-            texture,
-            self.opts.x,
-            self.opts.y,
-            WHITE,
-            DrawTextureParams {
-                dest_size: None,
-                source: None,
-                rotation: -self.opts.angle,
-                pivot: None,
-                flip_x: false,
-                flip_y: false,
-            },
+        draw_line(
+            self.opts.polygon[0].x,
+            self.opts.polygon[0].y,
+            self.opts.polygon[1].x,
+            self.opts.polygon[1].y,
+            3.0,
+            RED,
         );
+        draw_line(
+            self.opts.polygon[1].x,
+            self.opts.polygon[1].y,
+            self.opts.polygon[2].x,
+            self.opts.polygon[2].y,
+            3.0,
+            RED,
+        );
+        draw_line(
+            self.opts.polygon[2].x,
+            self.opts.polygon[2].y,
+            self.opts.polygon[3].x,
+            self.opts.polygon[3].y,
+            3.0,
+            RED,
+        );
+        draw_line(
+            self.opts.polygon[3].x,
+            self.opts.polygon[3].y,
+            self.opts.polygon[0].x,
+            self.opts.polygon[0].y,
+            3.0,
+            RED,
+        );
+        // draw_texture_ex(
+        //     texture,
+        //     self.opts.x,
+        //     self.opts.y,
+        //     WHITE,
+        //     DrawTextureParams {
+        //         dest_size: None,
+        //         source: None,
+        //         rotation: -self.opts.angle,
+        //         pivot: None,
+        //         flip_x: false,
+        //         flip_y: false,
+        //     },
+        // );
         self.sensors.draw();
     }
 }
