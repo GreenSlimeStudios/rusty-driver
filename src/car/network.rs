@@ -1,9 +1,10 @@
 use macroquad::prelude::*;
-// use utils::math::sigmoid;
+// use utils::math::sigmoi
+// use rand::prelude::*;
 
 #[derive(Clone, Debug)]
 pub struct Network {
-    layers: Vec<Layer>,
+    pub layers: Vec<Layer>,
 }
 impl Network {
     pub fn new(layer_count: i8, layer_neuron_count: i8, input_neuron_count: i8) -> Self {
@@ -25,11 +26,21 @@ impl Network {
         }
         network
     }
+    pub fn calcuate_layers(&mut self, input_neurons: &Vec<Neouron>) {
+        for i in 0..self.layers.len() {
+            if i == 0 {
+                self.layers[i].update_neurons(input_neurons);
+            } else {
+                let pre_neurons: &Vec<Neouron> = &self.layers[i - 1].neurons.clone();
+                self.layers[i].update_neurons(pre_neurons);
+            }
+        }
+    }
 }
 #[derive(Clone, Debug)]
-struct Layer {
-    weights: Vec<Vec<f32>>,
-    neurons: Vec<Neouron>,
+pub struct Layer {
+    pub weights: Vec<Vec<f32>>,
+    pub neurons: Vec<Neouron>,
 }
 impl Layer {
     fn new(neuron_count: i8) -> Self {
@@ -51,29 +62,41 @@ impl Layer {
         for i in 0..self.neurons.len() {
             self.weights.push(Vec::new());
             for j in 0..in_neuron_count {
-                self.weights[i].push(0.5);
+                let rng = rand::gen_range(-100.0, 100.0) / 100.0;
+                // let rng = 0.0;
+                self.weights[i].push(rng);
             }
         }
     }
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct Neouron {
     // inputs: Vec,
-    value: f32,
+    pub value: f32,
+    pub bias: f32,
 }
 impl Neouron {
     fn new() -> Self {
-        Self { value: 0.5 }
+        Self {
+            value: 0.0,
+            bias: rand::gen_range(-100.0, 100.0) / 100.0,
+        }
     }
     pub fn from_val(value: f32) -> Self {
-        Self { value }
+        Self { value, bias: 0.0 }
     }
     fn calculate(&mut self, weights: &Vec<f32>, input_neurons: &Vec<Neouron>) {
         let mut val: f32 = 0.0;
         for i in 0..input_neurons.len() {
             val += input_neurons[i].value * weights[i];
         }
-        self.value = val;
+        self.value = squishify(val + self.bias);
         // self.value = sigmoid(val);
     }
+}
+
+pub fn squishify(x: f32) -> f32 {
+    let val = 1.0 / (1.0 + std::f32::consts::E.powf(-x));
+    // println!("{} {}", x, val);
+    val
 }

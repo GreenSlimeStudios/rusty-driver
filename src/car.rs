@@ -79,7 +79,7 @@ impl Car {
         let mut car = Car {
             opts: CarOptions::new(x, y, width, height, is_main_car),
             sensors: Sensors::default(),
-            network: Network::new(3, 5, 4),
+            network: Network::new(3, 5, 5),
         };
         if is_main_car {
             car.sensors = Sensors::new(car.opts.clone());
@@ -92,10 +92,98 @@ impl Car {
         self.move_car();
         self.opts.polygon = self.create_polygon();
         self.opts.damaged = self.assess_demage(road_borders, traffic);
+        let input_neurons: Vec<Neouron> = self.get_inpot_neurons();
+        self.network.calcuate_layers(&input_neurons);
+        // println!("{:?}", self.network);
+        self.draw_netork(&input_neurons);
         // }
         if self.sensors.active {
             self.sensors
                 .update(self.opts.clone(), road_borders, traffic);
+        }
+    }
+    fn get_inpot_neurons(&self) -> Vec<Neouron> {
+        let mut neurons: Vec<Neouron> = Vec::new();
+        for i in 0..self.sensors.readings.len() {
+            let reading: Option<IntersectionResult> = self.sensors.readings[i];
+            match reading {
+                Some(val) => neurons.push(Neouron::from_val(1.0 - val.offset)),
+                None => neurons.push(Neouron::from_val(0.0)),
+            }
+        }
+        // println!("{:?}", neurons);
+        neurons
+    }
+    pub fn draw_netork(&self, input_neurons: &Vec<Neouron>) {
+        for i in 0..input_neurons.len() {
+            draw_circle(
+                -250.0 + i as f32 * 60.0,
+                self.opts.y,
+                10.0,
+                Color {
+                    r: 1.0,
+                    g: 0.3,
+                    b: 1.0,
+                    a: input_neurons[i].value + 0.3,
+                },
+            );
+        }
+        for i in 0..self.network.layers.len() {
+            let mut offset_x: f32 = 0.0;
+            if i == self.network.layers.len() - 1 {
+                offset_x = 30.0;
+            } else {
+                offset_x = 0.0;
+            }
+            for j in 0..self.network.layers[i].neurons.len() {
+                let neurons: &Vec<Neouron> = &self.network.layers[i].neurons;
+                // println!("{:?}", neurons);
+                // for k in 0..neurons.len() {
+                draw_circle(
+                    -250.0 + j as f32 * 60.0 + offset_x,
+                    self.opts.y - 100.0 * i as f32 - 100.0,
+                    10.0,
+                    Color {
+                        r: 0.3,
+                        g: 0.3,
+                        b: 1.0,
+                        a: neurons[j].value,
+                    },
+                );
+            }
+            for l in 0..self.network.layers.len() {
+                for j in 0..self.network.layers[i].weights.len() {
+                    let weights: &Vec<Vec<f32>> = &&self.network.layers[i].weights;
+                    for k in 0..weights.len() {
+                        draw_line(
+                            -250.0 + j as f32 * 60.0 + offset_x,
+                            self.opts.y - 100.0 * i as f32 - 100.0,
+                            -250.0 + k as f32 * 60.0,
+                            self.opts.y - 100.0 * i as f32 - 100.0 + 100.0,
+                            1.0,
+                            Color {
+                                r: if weights[j][k] > 0.0 { 0.3 } else { 1.0 },
+                                g: if weights[j][k] > 0.0 { 1.0 } else { 0.3 },
+                                b: 0.3,
+                                a: weights[j][k].abs(),
+                            },
+                        )
+                    }
+                    // println!("{:?}", neurons);
+                    // for k in 0..neurons.len() {
+                    // draw_circle(
+                    //     -150.0 + j as f32 * 60.0,
+                    //     self.opts.y - 100.0 * i as f32 - 100.0,
+                    //     10.0,
+                    //     Color {
+                    //         r: 0.3,
+                    //         g: 0.3,
+                    //         b: 1.0,
+                    //         a: weights[j].value,
+                    //     },
+                    // );
+                }
+            }
         }
     }
     fn assess_demage(&self, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>) -> bool {

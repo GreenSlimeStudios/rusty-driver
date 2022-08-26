@@ -8,7 +8,7 @@ pub struct Sensors {
     ray_length: f32,
     ray_spread: f32,
     rays: Vec<Vec<Vec2>>,
-    readings: Vec<Option<IntersectionResult>>,
+    pub readings: Vec<Option<IntersectionResult>>,
     pub active: bool,
 }
 
@@ -16,7 +16,7 @@ impl Sensors {
     pub fn new(car: CarOptions) -> Self {
         Self {
             car_options: car,
-            ray_count: 30,
+            ray_count: 5,
             ray_length: 200.0,
             ray_spread: std::f32::consts::PI / 2.0,
             rays: Vec::new(),
@@ -146,7 +146,7 @@ fn get_reading(
 pub struct IntersectionResult {
     x: f32,
     y: f32,
-    offset: f32,
+    pub offset: f32,
 }
 
 pub fn get_intersection(A: Vec2, B: Vec2, C: Vec2, D: Vec2) -> Option<IntersectionResult> {
