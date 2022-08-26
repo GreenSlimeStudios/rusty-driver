@@ -1,14 +1,19 @@
 pub mod controller;
+pub mod network;
 pub mod sensors;
+
+use network::*;
 
 use controller::*;
 
 use macroquad::prelude::*;
+use network::*;
 use sensors::*;
 
 pub struct Car {
     pub opts: CarOptions,
     pub sensors: Sensors,
+    pub network: Network,
 }
 #[derive(Clone)]
 pub struct CarOptions {
@@ -74,10 +79,12 @@ impl Car {
         let mut car = Car {
             opts: CarOptions::new(x, y, width, height, is_main_car),
             sensors: Sensors::default(),
+            network: Network::new(3, 5, 4),
         };
         if is_main_car {
             car.sensors = Sensors::new(car.opts.clone());
         }
+        println!("{:?}", car.network);
         return car;
     }
     pub fn update(&mut self, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>) {

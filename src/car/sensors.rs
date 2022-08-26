@@ -134,7 +134,6 @@ fn get_reading(
     if touches.len() == 0 {
         return None;
     } else {
-        println!("{:?}", touches.len());
         return Some(
             touches
                 .into_iter()
