@@ -80,6 +80,7 @@ impl Neouron {
         Self {
             value: 0.0,
             bias: rand::gen_range(-100.0, 100.0) / 100.0,
+            // bias: 0.0,
         }
     }
     pub fn from_val(value: f32) -> Self {
