@@ -70,7 +70,7 @@ impl Sensors {
             self.rays.push(vec![start, end]);
         }
     }
-    pub fn draw(&mut self) {
+    pub fn draw(&mut self, is_main_car: bool) {
         for i in 0..self.rays.len() {
             let mut end: Vec2 = self.rays[i][1];
             match &self.readings[i] {
@@ -86,7 +86,12 @@ impl Sensors {
                 end.x,
                 end.y,
                 3.0,
-                YELLOW,
+                Color {
+                    r: 1.0,
+                    g: 1.0,
+                    b: 0.0,
+                    a: if is_main_car { 1.0 } else { 0.5 },
+                },
             );
 
             draw_line(
@@ -95,7 +100,12 @@ impl Sensors {
                 end.x,
                 end.y,
                 3.0,
-                BLACK,
+                Color {
+                    r: 0.0,
+                    g: 0.0,
+                    b: 0.0,
+                    a: if is_main_car { 1.0 } else { 0.5 },
+                },
             );
         }
     }

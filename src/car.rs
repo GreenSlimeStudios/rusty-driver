@@ -328,7 +328,7 @@ impl Car {
         self.opts.x -= self.opts.angle.sin() * self.opts.speed;
         self.opts.y -= self.opts.angle.cos() * self.opts.speed;
     }
-    pub fn draw(&mut self, texture: Texture2D) {
+    pub fn draw(&mut self, texture: Texture2D, is_main_car: bool) {
         for i in 0..self.opts.polygon.len() {
             draw_line(
                 self.opts.polygon[i].x,
@@ -336,7 +336,16 @@ impl Car {
                 self.opts.polygon[(i + 1) % self.opts.polygon.len()].x,
                 self.opts.polygon[(i + 1) % self.opts.polygon.len()].y,
                 3.0,
-                if self.opts.is_main_car { RED } else { BLUE },
+                if self.opts.is_main_car {
+                    Color {
+                        r: 1.0,
+                        g: 0.0,
+                        b: 0.0,
+                        a: if is_main_car { 1.0 } else { 0.5 },
+                    }
+                } else {
+                    BLUE
+                },
             );
         }
         if self.opts.damaged {
@@ -356,7 +365,7 @@ impl Car {
             );
         }
         if self.sensors.active {
-            self.sensors.draw();
+            self.sensors.draw(is_main_car);
         }
     }
 }

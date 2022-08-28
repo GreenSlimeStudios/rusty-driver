@@ -42,7 +42,7 @@ async fn main() {
     //     true,
     // );
     let mut cars: Vec<Car> = Vec::new();
-    for i in 0..50 {
+    for i in 0..300 {
         cars.push(Car::new(
             road.get_lane_center(1) - 20.0,
             screen_height() / 2. - 40.,
@@ -95,10 +95,14 @@ async fn main() {
         road.draw(&cars[index].opts.y);
 
         for i in 0..traffic.len() {
-            traffic[i].draw(texture);
+            traffic[i].draw(texture, false);
         }
         for i in 0..cars.len() {
-            cars[i].draw(texture);
+            if i == index {
+                cars[i].draw(texture, true);
+            } else {
+                cars[i].draw(texture, false);
+            }
         }
 
         // set_camera(&Camera2D {

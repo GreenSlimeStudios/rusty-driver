@@ -93,7 +93,7 @@ impl Neouron {
         for i in 0..input_neurons.len() {
             val += input_neurons[i].value * weights[i];
         }
-        println!("{}", val);
+        // println!("{}", val);
         self.value = squishify(val + self.bias);
         // self.value = sigmoid(val);
     }
