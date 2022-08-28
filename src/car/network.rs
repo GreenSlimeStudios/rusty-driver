@@ -1,6 +1,7 @@
-use macroquad::prelude::*;
+// use macroquad::prelude::*;
 // use utils::math::sigmoi
 // use rand::prelude::*;
+use rand::*;
 
 #[derive(Clone, Debug)]
 pub struct Network {
@@ -62,7 +63,8 @@ impl Layer {
         for i in 0..self.neurons.len() {
             self.weights.push(Vec::new());
             for j in 0..in_neuron_count {
-                let rng = rand::gen_range(-100.0, 100.0) / 10.0;
+                let rng = rand::thread_rng().gen_range(-100.0..=100.0) / 20.0;
+                // let rng: f32 = rand::srand(10);
                 // let rng = 0.0;
                 self.weights[i].push(rng);
             }
@@ -79,7 +81,7 @@ impl Neouron {
     fn new() -> Self {
         Self {
             value: 0.0,
-            bias: rand::gen_range(-100.0, 100.0) / 1000.0,
+            bias: rand::thread_rng().gen_range(-100.0..=100.0) / 1000.0,
             // bias: 0.0,
         }
     }
@@ -91,6 +93,7 @@ impl Neouron {
         for i in 0..input_neurons.len() {
             val += input_neurons[i].value * weights[i];
         }
+        println!("{}", val);
         self.value = squishify(val + self.bias);
         // self.value = sigmoid(val);
     }

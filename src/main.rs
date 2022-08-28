@@ -18,6 +18,10 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    for i in 0..4000 {
+        let rng = rand::gen_range(-100.0, 100.0);
+    }
+
     let texture: Texture2D = load_texture("assets/car.png").await.unwrap();
 
     let mut road: Road = Road::new(700.0 / 2.0, 700.0 * 0.5, 4);
