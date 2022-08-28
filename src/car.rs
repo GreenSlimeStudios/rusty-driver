@@ -10,6 +10,10 @@ use macroquad::prelude::*;
 use network::*;
 use sensors::*;
 
+const LAYER_COUNT: i8 = 3;
+const LAYER_NEURON_COUNT: i8 = 5;
+const INPUT_NEURON_COUNT: i8 = 6;
+
 pub struct Car {
     pub opts: CarOptions,
     pub sensors: Sensors,
@@ -79,7 +83,7 @@ impl Car {
         let mut car = Car {
             opts: CarOptions::new(x, y, width, height, is_main_car),
             sensors: Sensors::default(),
-            network: Network::new(3, 5, 6),
+            network: Network::new(LAYER_COUNT, LAYER_NEURON_COUNT, INPUT_NEURON_COUNT),
         };
         if is_main_car {
             car.sensors = Sensors::new(car.opts.clone());
@@ -137,7 +141,7 @@ impl Car {
                                 r: if weights[j][k] > 0.0 { 0.3 } else { 1.0 },
                                 g: if weights[j][k] > 0.0 { 1.0 } else { 0.3 },
                                 b: 0.3,
-                                a: weights[j][k].abs(),
+                                a: weights[j][k].abs() / 10.0,
                             },
                         )
                     }
