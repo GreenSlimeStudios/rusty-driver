@@ -34,13 +34,23 @@ async fn main() {
     ));
     my_camera.zoom = Vec2::new(0.002, 0.002);
 
-    let mut car: Car = Car::new(
-        road.get_lane_center(1) - 20.0,
-        screen_height() / 2. - 40.,
-        40.,
-        80.,
-        true,
-    );
+    // let mut car: Car = Car::new(
+    //     road.get_lane_center(1) - 20.0,
+    //     screen_height() / 2. - 40.,
+    //     40.,
+    //     80.,
+    //     true,
+    // );
+    let mut cars: Vec<Car> = Vec::new();
+    for i in 0..50 {
+        cars.push(Car::new(
+            road.get_lane_center(1) - 20.0,
+            screen_height() / 2. - 40.,
+            40.,
+            80.,
+            true,
+        ));
+    }
     let mut traffic: Vec<Car> = vec![Car::new(
         road.get_lane_center(1) - 20.0,
         -100.0,
@@ -50,11 +60,18 @@ async fn main() {
     )];
 
     loop {
-        for i in 0..traffic.len() {
-            traffic[i].update(&road.borders, &Vec::new());
+        let mut index: usize = 0;
+        for i in 0..cars.len() {
+            if cars[i].opts.y < cars[index].opts.y {
+                index = i;
+            }
         }
 
-        my_camera.target = Vec2::new(100.0, car.opts.y - 200.0);
+        for i in 0..traffic.len() {
+            traffic[i].update(&road.borders, &Vec::new(), false);
+        }
+
+        my_camera.target = Vec2::new(100.0, cars[index].opts.y - 200.0);
         my_camera.rotation = 180.0;
         my_camera.viewport = Some((
             0,
@@ -66,14 +83,23 @@ async fn main() {
         set_camera(&my_camera);
 
         clear_background(BLACK);
-        car.update(&road.borders, &traffic);
+
+        for i in 0..cars.len() {
+            if i == index {
+                cars[i].update(&road.borders, &traffic, true);
+            } else {
+                cars[i].update(&road.borders, &traffic, false);
+            }
+        }
         // car.update(&vec![traffic[0].opts.polygon]);
-        road.draw(&car.opts.y);
+        road.draw(&cars[index].opts.y);
 
         for i in 0..traffic.len() {
             traffic[i].draw(texture);
         }
-        car.draw(texture);
+        for i in 0..cars.len() {
+            cars[i].draw(texture);
+        }
 
         // set_camera(&Camera2D {
         //     zoom: vec2(1., screen_width() / screen_height()),

@@ -91,19 +91,26 @@ impl Car {
         println!("{:?}", car.network);
         return car;
     }
-    pub fn update(&mut self, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>) {
-        // if self.opts.damaged == false {
-        self.move_car();
-        self.opts.polygon = self.create_polygon();
-        self.opts.damaged = self.assess_demage(road_borders, traffic);
-        let input_neurons: Vec<Neouron> = self.get_inpot_neurons();
-        self.network.calcuate_layers(&input_neurons);
-        // println!("{:?}", self.network);
-        self.draw_netork(&input_neurons);
-        // }
-        if self.sensors.active {
-            self.sensors
-                .update(self.opts.clone(), road_borders, traffic);
+    pub fn update(&mut self, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>, is_main_car: bool) {
+        if self.opts.is_main_car {
+            if self.opts.damaged == false {
+                self.move_car();
+                self.opts.polygon = self.create_polygon();
+                self.opts.damaged = self.assess_demage(road_borders, traffic);
+            }
+            let input_neurons: Vec<Neouron> = self.get_inpot_neurons();
+            self.network.calcuate_layers(&input_neurons);
+            // println!("{:?}", self.network);
+            if is_main_car {
+                self.draw_netork(&input_neurons);
+            }
+            if self.sensors.active {
+                self.sensors
+                    .update(self.opts.clone(), road_borders, traffic);
+            }
+        } else {
+            self.move_car();
+            self.opts.polygon = self.create_polygon();
         }
     }
     fn get_inpot_neurons(&self) -> Vec<Neouron> {
@@ -261,6 +268,18 @@ impl Car {
                 self.opts.controlls.reverse = false;
             }
             // println!("left: {}", self.options.controlls.left);
+        }
+        if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[0].value > 0.7 {
+            self.opts.controlls.forward = true;
+        }
+        if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[1].value > 0.7 {
+            self.opts.controlls.left = true;
+        }
+        if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[2].value > 0.7 {
+            self.opts.controlls.right = true;
+        }
+        if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[3].value > 0.7 {
+            self.opts.controlls.reverse = true;
         }
         // println!("right: {}", self.options.controlls.right);
         // println!("forward: {}", self.options.controlls.forward);
