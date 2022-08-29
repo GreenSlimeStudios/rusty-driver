@@ -1,4 +1,4 @@
-use crate::utils::*;
+// use crate::utils::*;
 use macroquad::prelude::*;
 const INFINITY: f32 = 1000000.0;
 
@@ -85,6 +85,6 @@ impl Road {
         return self.left + lane_width as f32 / 2.0 + lane_index as f32 * lane_width;
     }
 }
-pub fn lerp(A: f32, B: f32, t: f32) -> f32 {
-    return A + (B - A) * t;
+pub fn lerp(a: f32, b: f32, t: f32) -> f32 {
+    return a + (b - a) * t;
 }

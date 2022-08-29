@@ -38,7 +38,7 @@ async fn main() {
     //     true,
     // );
     let mut cars: Vec<Car> = Vec::new();
-    for i in 0..200 {
+    for _i in 0..200 {
         cars.push(Car::new(
             road.get_lane_center(1) - 20.0,
             screen_height() / 2. - 40.,

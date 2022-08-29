@@ -7,7 +7,6 @@ use network::*;
 use controller::*;
 
 use macroquad::prelude::*;
-use network::*;
 use sensors::*;
 
 const LAYER_COUNT: i8 = 3;
@@ -136,26 +135,26 @@ impl Car {
             } else {
                 offset_x = 0.0;
             }
-            for l in 0..self.network.layers.len() {
-                for j in 0..self.network.layers[i].weights.len() {
-                    let weights: &Vec<Vec<f32>> = &&self.network.layers[i].weights;
-                    for k in 0..weights[j].len() {
-                        draw_line(
-                            -250.0 + j as f32 * 60.0 + offset_x,
-                            self.opts.y - 100.0 * i as f32 - 100.0,
-                            -250.0 + k as f32 * 60.0,
-                            self.opts.y - 100.0 * i as f32 - 100.0 + 100.0,
-                            1.0,
-                            Color {
-                                r: if weights[j][k] > 0.0 { 0.3 } else { 1.0 },
-                                g: if weights[j][k] > 0.0 { 1.0 } else { 0.3 },
-                                b: 0.3,
-                                a: weights[j][k].abs() / 10.0,
-                            },
-                        )
-                    }
+            // for l in 0..self.network.layers.len() {
+            for j in 0..self.network.layers[i].weights.len() {
+                let weights: &Vec<Vec<f32>> = &&self.network.layers[i].weights;
+                for k in 0..weights[j].len() {
+                    draw_line(
+                        -250.0 + j as f32 * 60.0 + offset_x,
+                        self.opts.y - 100.0 * i as f32 - 100.0,
+                        -250.0 + k as f32 * 60.0,
+                        self.opts.y - 100.0 * i as f32 - 100.0 + 100.0,
+                        1.0,
+                        Color {
+                            r: if weights[j][k] > 0.0 { 0.3 } else { 1.0 },
+                            g: if weights[j][k] > 0.0 { 1.0 } else { 0.3 },
+                            b: 0.3,
+                            a: weights[j][k].abs() / 7.0,
+                        },
+                    )
                 }
             }
+            // }
             for j in 0..self.network.layers[i].neurons.len() {
                 let neurons: &Vec<Neouron> = &self.network.layers[i].neurons;
                 // println!("{:?}", neurons);

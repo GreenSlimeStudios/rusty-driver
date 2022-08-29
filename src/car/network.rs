@@ -49,7 +49,7 @@ impl Layer {
             weights: Vec::new(),
             neurons: Vec::new(),
         };
-        for i in 0..neuron_count {
+        for _i in 0..neuron_count {
             layer.neurons.push(Neouron::new());
         }
         layer
@@ -62,7 +62,7 @@ impl Layer {
     fn generate_new_weights(&mut self, in_neuron_count: i8) {
         for i in 0..self.neurons.len() {
             self.weights.push(Vec::new());
-            for j in 0..in_neuron_count {
+            for _j in 0..in_neuron_count {
                 let rng = rand::thread_rng().gen_range(-100.0..=100.0) / 20.0;
                 // let rng: f32 = rand::srand(10);
                 // let rng = 0.0;
