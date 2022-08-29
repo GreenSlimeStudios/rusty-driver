@@ -7,11 +7,12 @@ use network::*;
 use controller::*;
 
 use macroquad::prelude::*;
+// use macroquad::prelude::*;
 use sensors::*;
 
 const LAYER_COUNT: i8 = 3;
 const LAYER_NEURON_COUNT: i8 = 5;
-const INPUT_NEURON_COUNT: i8 = 6;
+const INPUT_NEURON_COUNT: i8 = 8;
 
 const TIME_MULTIPLIER: f32 = 1.0;
 
@@ -129,7 +130,13 @@ impl Car {
     }
     pub fn draw_netork(&self, input_neurons: &Vec<Neouron>) {
         for i in 0..self.network.layers.len() {
+            let mut offset_in: f32 = 0.0;
             let mut offset_x: f32 = 0.0;
+            if i == 0 {
+                offset_in = -60.0;
+            } else {
+                offset_in = 0.0;
+            }
             if i == self.network.layers.len() - 1 {
                 // offset_x = 30.0;
             } else {
@@ -142,7 +149,7 @@ impl Car {
                     draw_line(
                         -250.0 + j as f32 * 60.0 + offset_x,
                         self.opts.y - 100.0 * i as f32 - 100.0,
-                        -250.0 + k as f32 * 60.0,
+                        -250.0 + k as f32 * 60.0 + offset_in,
                         self.opts.y - 100.0 * i as f32 - 100.0 + 100.0,
                         1.0,
                         Color {
@@ -174,7 +181,7 @@ impl Car {
         }
         for i in 0..input_neurons.len() {
             draw_circle(
-                -250.0 + i as f32 * 60.0,
+                -250.0 + i as f32 * 60.0 - 60.0,
                 self.opts.y,
                 10.0,
                 Color {
@@ -186,7 +193,10 @@ impl Car {
             );
         }
     }
-    fn assess_demage(&self, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>) -> bool {
+    fn assess_demage(&mut self, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>) -> bool {
+        if self.opts.y > 10.0 {
+            self.opts.damaged = true;
+        }
         for i in 0..traffic.len() {
             match get_poly_intersection(&self.opts.polygon, &traffic[i].opts.polygon) {
                 true => {
@@ -271,17 +281,20 @@ impl Car {
             // println!("left: {}", self.options.controlls.left);
         }
         if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[0].value > 0.7 {
-            self.opts.controlls.forward = true;
-        }
-        if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[1].value > 0.7 {
             self.opts.controlls.left = true;
         }
-        if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[2].value > 0.7 {
+        if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[1].value > 0.7 {
             self.opts.controlls.right = true;
         }
-        if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[3].value > 0.7 {
-            self.opts.controlls.reverse = true;
-        }
+        // if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[2].value > 0.7 {
+        //     self.opts.controlls.right = true;
+        // }
+        // if self.network.layers[(LAYER_COUNT - 1) as usize].neurons[3].value > 0.7 {
+        //     self.opts.controlls.reverse = true;
+        // }
+        self.opts.controlls.forward = true;
+        self.opts.controlls.reverse = false;
+
         // println!("right: {}", self.options.controlls.right);
         // println!("forward: {}", self.options.controlls.forward);
         // println!("reverse: {}", self.options.controlls.reverse);
@@ -333,7 +346,7 @@ impl Car {
         self.opts.x -= self.opts.angle.sin() * self.opts.speed * TIME_MULTIPLIER;
         self.opts.y -= self.opts.angle.cos() * self.opts.speed * TIME_MULTIPLIER;
     }
-    pub fn draw(&mut self, texture: Texture2D, is_main_car: bool) {
+    pub fn draw(&mut self, texture: Texture2D, is_main_car: bool, show_sensors: bool) {
         for i in 0..self.opts.polygon.len() {
             draw_line(
                 self.opts.polygon[i].x,
@@ -369,7 +382,7 @@ impl Car {
                 },
             );
         }
-        if self.sensors.active {
+        if self.sensors.active && show_sensors {
             self.sensors.draw(is_main_car);
         }
     }

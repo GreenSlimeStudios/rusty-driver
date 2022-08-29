@@ -3,6 +3,8 @@
 // use rand::prelude::*;
 use rand::*;
 
+const OUTPUT_NEURON_COUNT: i8 = 2;
+
 #[derive(Clone, Debug)]
 pub struct Network {
     pub layers: Vec<Layer>,
@@ -12,7 +14,7 @@ impl Network {
         let mut network = Self { layers: Vec::new() };
         for i in 0..layer_count {
             if i == layer_count - 1 {
-                network.layers.push(Layer::new(4)); // 4 becouse there are for buttons the car can press
+                network.layers.push(Layer::new(OUTPUT_NEURON_COUNT)); // 4 becouse there are for buttons the car can press
             } else {
                 network.layers.push(Layer::new(layer_neuron_count));
             }
@@ -35,6 +37,19 @@ impl Network {
                 let pre_neurons: &Vec<Neouron> = &self.layers[i - 1].neurons.clone();
                 self.layers[i].update_neurons(pre_neurons);
             }
+        }
+    }
+    pub fn alter_values(&mut self) {
+        for i in 0..self.layers.len() {
+            //weights
+            for j in 0..self.layers[i].weights.len() {
+                for k in 0..self.layers[i].weights[j].len() {
+                    self.layers[i].weights[j][k] += rand::thread_rng().gen_range(-10.0..10.0);
+                }
+            }
+            // for j in 0..self.layers[i].neurons.len() {
+            //     self.layers[i].neurons[j].bias += rand::thread_rng().gen_range(-10.0..10.0)
+            // }
         }
     }
 }
