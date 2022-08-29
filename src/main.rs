@@ -18,10 +18,6 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    for i in 0..4000 {
-        let rng = rand::gen_range(-100.0, 100.0);
-    }
-
     let texture: Texture2D = load_texture("assets/car.png").await.unwrap();
 
     let mut road: Road = Road::new(700.0 / 2.0, 700.0 * 0.5, 4);
@@ -42,7 +38,7 @@ async fn main() {
     //     true,
     // );
     let mut cars: Vec<Car> = Vec::new();
-    for i in 0..300 {
+    for i in 0..200 {
         cars.push(Car::new(
             road.get_lane_center(1) - 20.0,
             screen_height() / 2. - 40.,
@@ -58,6 +54,15 @@ async fn main() {
         80.0,
         false,
     )];
+    for i in 0..20 {
+        traffic.push(Car::new(
+            road.get_lane_center(rand::gen_range(0, 4) as i8) as f32 - 20.0,
+            -300.0 - 200.0 * i as f32,
+            40.0,
+            80.0,
+            false,
+        ));
+    }
 
     loop {
         let mut index: usize = 0;

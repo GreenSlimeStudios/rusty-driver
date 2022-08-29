@@ -90,7 +90,7 @@ impl Sensors {
                     r: 1.0,
                     g: 1.0,
                     b: 0.0,
-                    a: if is_main_car { 1.0 } else { 0.5 },
+                    a: if is_main_car { 1.0 } else { 0.3 },
                 },
             );
 
@@ -104,7 +104,7 @@ impl Sensors {
                     r: 0.0,
                     g: 0.0,
                     b: 0.0,
-                    a: if is_main_car { 1.0 } else { 0.5 },
+                    a: if is_main_car { 1.0 } else { 0.3 },
                 },
             );
         }

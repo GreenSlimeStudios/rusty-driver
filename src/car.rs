@@ -14,6 +14,8 @@ const LAYER_COUNT: i8 = 3;
 const LAYER_NEURON_COUNT: i8 = 5;
 const INPUT_NEURON_COUNT: i8 = 6;
 
+const TIME_MULTIPLIER: f32 = 1.0;
+
 pub struct Car {
     pub opts: CarOptions,
     pub sensors: Sensors,
@@ -88,7 +90,7 @@ impl Car {
         if is_main_car {
             car.sensors = Sensors::new(car.opts.clone());
         }
-        println!("{:?}", car.network);
+        // println!("{:?}", car.network);
         return car;
     }
     pub fn update(&mut self, road_borders: &Vec<Vec<Vec2>>, traffic: &Vec<Car>, is_main_car: bool) {
@@ -288,25 +290,25 @@ impl Car {
 
         // FORWARD BACKWARD SPEED
         if self.opts.controlls.reverse {
-            self.opts.speed -= self.opts.acceleration;
+            self.opts.speed -= self.opts.acceleration * TIME_MULTIPLIER;
         }
         if self.opts.controlls.forward {
-            self.opts.speed += self.opts.acceleration;
+            self.opts.speed += self.opts.acceleration * TIME_MULTIPLIER;
         }
 
-        if self.opts.speed > self.opts.max_speed {
-            self.opts.speed = self.opts.max_speed;
+        if self.opts.speed > self.opts.max_speed * TIME_MULTIPLIER {
+            self.opts.speed = self.opts.max_speed * TIME_MULTIPLIER;
         }
-        if self.opts.speed < -self.opts.max_speed / 2.0 {
-            self.opts.speed = -self.opts.max_speed / 2.0;
+        if self.opts.speed < -self.opts.max_speed / 2.0 * TIME_MULTIPLIER {
+            self.opts.speed = -self.opts.max_speed / 2.0 * TIME_MULTIPLIER;
         }
         if self.opts.speed > 0.0 {
-            self.opts.speed -= self.opts.friction;
+            self.opts.speed -= self.opts.friction * TIME_MULTIPLIER;
         }
         if self.opts.speed < 0.0 {
-            self.opts.speed += self.opts.friction;
+            self.opts.speed += self.opts.friction * TIME_MULTIPLIER;
         }
-        if self.opts.speed.abs() < self.opts.friction {
+        if self.opts.speed.abs() * TIME_MULTIPLIER < self.opts.friction * TIME_MULTIPLIER {
             self.opts.speed = 0.0;
         }
 
@@ -316,17 +318,21 @@ impl Car {
             // let flip: i8 = if self.options.speed > 0.0 { 1 } else { -1 };
             let flip = -1.0;
             if self.opts.controlls.left {
-                self.opts.angle +=
-                    flip * self.opts.rotation_speed * (self.opts.speed / self.opts.max_speed);
+                self.opts.angle += flip
+                    * self.opts.rotation_speed
+                    * (self.opts.speed / self.opts.max_speed)
+                    * TIME_MULTIPLIER;
             }
             if self.opts.controlls.right {
-                self.opts.angle -=
-                    flip * self.opts.rotation_speed * (self.opts.speed / self.opts.max_speed);
+                self.opts.angle -= flip
+                    * self.opts.rotation_speed
+                    * (self.opts.speed / self.opts.max_speed * TIME_MULTIPLIER)
+                    * TIME_MULTIPLIER;
             }
         }
 
-        self.opts.x -= self.opts.angle.sin() * self.opts.speed;
-        self.opts.y -= self.opts.angle.cos() * self.opts.speed;
+        self.opts.x -= self.opts.angle.sin() * self.opts.speed * TIME_MULTIPLIER;
+        self.opts.y -= self.opts.angle.cos() * self.opts.speed * TIME_MULTIPLIER;
     }
     pub fn draw(&mut self, texture: Texture2D, is_main_car: bool) {
         for i in 0..self.opts.polygon.len() {
