@@ -5,9 +5,12 @@ use car::network::*;
 use car::*;
 use road::*;
 
-use macroquad::prelude::{
-    clear_background, is_key_down, load_texture, next_frame, screen_height, screen_width,
-    set_camera, Camera2D, Conf, Texture2D, Vec2, BLACK,
+use macroquad::{
+    prelude::{
+        clear_background, is_key_down, load_texture, next_frame, screen_height, screen_width,
+        set_camera, Camera2D, Conf, Texture2D, Vec2, BLACK, WHITE,
+    },
+    text::draw_text,
 };
 // use rand::thread_rng;
 // use rand::Rng;
@@ -28,17 +31,18 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut generation_count: u32 = 1;
     let mut show_sensors: bool = true;
     let texture: Texture2D = load_texture("assets/car.png").await.unwrap();
 
-    let mut road: Road = Road::new(700.0 / 2.0, 700.0 * 0.5, 4);
+    let mut road: Road = Road::new(700.0 / 2.0, 320.0, 4);
     let mut my_camera = Camera2D::default();
-    my_camera.viewport = Some((
-        0,
-        0,
-        screen_width().round() as i32,
-        -screen_height().round() as i32,
-    ));
+    // my_camera.viewport = Some((
+    //     0,
+    //     0,
+    //     screen_width().round() as i32,
+    //     -screen_height().round() as i32,
+    // ));
     my_camera.zoom = Vec2::new(0.002, 0.002);
 
     // let mut car: Car =
@@ -53,24 +57,7 @@ async fn main() {
         ));
     }
     let mut traffic: Vec<Car> = Vec::new();
-    for i in 0..TRAFFIC_SIZE {
-        traffic.push(Car::new(
-            road.get_lane_center(1) - 20.0,
-            screen_height() / 2. - 40.,
-            40.,
-            80.,
-            true,
-        ));
-        for _j in 0..1 {
-            traffic.push(Car::new(
-                road.get_lane_center(rand::thread_rng().gen_range(0..4) as i8) as f32 - 20.0,
-                -300.0 - 200.0 * i as f32,
-                40.0,
-                80.0,
-                false,
-            ));
-        }
-    }
+    generate_traffic(&mut traffic, &mut road);
     let mut are_all_dmaged: bool = true;
     loop {
         if is_key_down(macroquad::prelude::KeyCode::E) {
@@ -111,23 +98,13 @@ async fn main() {
             traffic.clear();
             traffic.push(Car::new(
                 road.get_lane_center(1) - 20.0,
-                -200.0,
+                -100.0,
                 40.,
                 80.,
                 false,
             ));
-            for i in 0..TRAFFIC_SIZE {
-                for _j in 0..1 {
-                    traffic.push(Car::new(
-                        road.get_lane_center(rand::thread_rng().gen_range(0..4) as i8) as f32
-                            - 20.0,
-                        -300.0 - 200.0 * i as f32,
-                        40.0,
-                        80.0,
-                        false,
-                    ));
-                }
-            }
+            generate_traffic(&mut traffic, &mut road);
+            generation_count += 1;
         }
 
         for i in 0..traffic.len() {
@@ -136,11 +113,13 @@ async fn main() {
 
         my_camera.target = Vec2::new(100.0, cars[index].opts.y - 200.0);
         my_camera.rotation = 180.0;
+        // my_camera.world_to_screen(Vec2::new(0.0, cars[index].opts.y));
         my_camera.viewport = Some((
             0,
             0,
-            screen_height().round() as i32,
-            screen_height().round() as i32,
+            // cars[index].opts.y.round() as i32,
+            -screen_height().round() as i32,
+            -screen_height().round() as i32,
         ));
 
         set_camera(&my_camera);
@@ -173,6 +152,13 @@ async fn main() {
                 cars[i].opts.damaged = true;
             }
         }
+        draw_text(
+            generation_count.to_string().as_str(),
+            -20.0,
+            cars[index].opts.y - 500.0,
+            22.0,
+            WHITE,
+        );
 
         // set_camera(&Camera2D {
         //     zoom: vec2(1., screen_width() / screen_height()),
@@ -187,7 +173,44 @@ async fn main() {
         // draw_circle(screen_width() - 30.0, screen_height() - 30.0, 15.0, YELLOW);
 
         // draw_text("HELLO", 20.0, 20.0, 30.0, DARKGRAY);
-
         next_frame().await
+    }
+}
+
+fn generate_traffic(traffic: &mut Vec<Car>, road: &mut Road) {
+    for i in 0..TRAFFIC_SIZE {
+        let road_index: i8 = rand::thread_rng().gen_range(0..4) as i8;
+
+        traffic.push(Car::new(
+            road.get_lane_center(road_index) as f32 - 20.0,
+            -300.0 - 200.0 * i as f32,
+            40.0,
+            80.0,
+            false,
+        ));
+        let road_index2: i8 = rand::thread_rng().gen_range(0..4) as i8;
+
+        traffic.push(Car::new(
+            road.get_lane_center(road_index2) as f32 - 20.0,
+            -300.0 - 200.0 * i as f32,
+            40.0,
+            80.0,
+            false,
+        ));
+        if (road_index - road_index2).abs() == 1 || (road_index2 - road_index).abs() == 1 {
+            // println!("cars nearby");
+            traffic.push(Car::new(
+                road.get_lane_center(if road_index < road_index2 {
+                    road_index
+                } else {
+                    road_index2
+                }) as f32
+                    - 20.0,
+                -300.0 - 200.0 * i as f32,
+                40.0 * 3.0,
+                80.0,
+                false,
+            ));
+        }
     }
 }

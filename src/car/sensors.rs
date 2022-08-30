@@ -16,7 +16,7 @@ impl Sensors {
     pub fn new(car: CarOptions) -> Self {
         Self {
             car_options: car,
-            ray_count: 7,
+            ray_count: 13,
             ray_length: 200.0,
             ray_spread: std::f32::consts::PI / 1.5,
             rays: Vec::new(),
