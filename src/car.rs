@@ -12,9 +12,11 @@ use sensors::*;
 
 const LAYER_COUNT: i8 = 3;
 const LAYER_NEURON_COUNT: i8 = 5;
-const INPUT_NEURON_COUNT: i8 = 14;
+const INPUT_NEURON_COUNT: i8 = 12;
 
 const TIME_MULTIPLIER: f32 = 1.0;
+
+const NETWORK_OFFSET_X: f32 = -270.0;
 
 pub struct Car {
     pub opts: CarOptions,
@@ -88,7 +90,7 @@ impl Car {
             network: Network::new(LAYER_COUNT, LAYER_NEURON_COUNT, INPUT_NEURON_COUNT),
         };
         if is_main_car {
-            car.sensors = Sensors::new(car.opts.clone());
+            car.sensors = Sensors::new(car.opts.clone(), INPUT_NEURON_COUNT - 1);
         }
         // println!("{:?}", car.network);
         return car;
@@ -99,16 +101,16 @@ impl Car {
                 self.move_car();
                 self.opts.polygon = self.create_polygon();
                 self.opts.damaged = self.assess_demage(road_borders, traffic);
-            }
-            let input_neurons: Vec<Neouron> = self.get_inpot_neurons();
-            self.network.calcuate_layers(&input_neurons);
-            // println!("{:?}", self.network);
-            if is_main_car {
-                self.draw_netork(&input_neurons);
-            }
-            if self.sensors.active {
-                self.sensors
-                    .update(self.opts.clone(), road_borders, traffic);
+                let input_neurons: Vec<Neouron> = self.get_inpot_neurons();
+                self.network.calcuate_layers(&input_neurons);
+                // println!("{:?}", self.network);
+                if is_main_car {
+                    self.draw_netork(&input_neurons);
+                }
+                if self.sensors.active {
+                    self.sensors
+                        .update(self.opts.clone(), road_borders, traffic);
+                }
             }
         } else {
             self.move_car();
@@ -134,14 +136,14 @@ impl Car {
             let mut div_in: f32 = 1.0;
             let mut offset_x: f32 = 0.0;
             if i == 0 {
-                offset_in = -90.0;
-                div_in = 2.0;
+                offset_in = -60.0;
+                div_in = 7.0 / INPUT_NEURON_COUNT as f32;
             } else {
                 offset_in = 0.0;
                 div_in = 1.0;
             }
             if i == self.network.layers.len() - 1 {
-                // offset_x = 30.0;
+                offset_x = 30.0;
             } else {
                 offset_x = 0.0;
             }
@@ -150,9 +152,9 @@ impl Car {
                 let weights: &Vec<Vec<f32>> = &&self.network.layers[i].weights;
                 for k in 0..weights[j].len() {
                     draw_line(
-                        -250.0 + j as f32 * 60.0 + offset_x,
+                        NETWORK_OFFSET_X + j as f32 * 60.0 + offset_x,
                         self.opts.y - 100.0 * i as f32 - 100.0,
-                        -250.0 + k as f32 * 60.0 / div_in + offset_in,
+                        NETWORK_OFFSET_X + k as f32 * 60.0 * div_in + offset_in,
                         self.opts.y - 100.0 * i as f32 - 100.0 + 100.0,
                         1.0,
                         Color {
@@ -170,7 +172,7 @@ impl Car {
                 // println!("{:?}", neurons);
                 // for k in 0..neurons.len() {
                 draw_circle(
-                    -250.0 + j as f32 * 60.0 + offset_x,
+                    NETWORK_OFFSET_X + j as f32 * 60.0 + offset_x,
                     self.opts.y - 100.0 * i as f32 - 100.0,
                     10.0,
                     Color {
@@ -184,7 +186,8 @@ impl Car {
         }
         for i in 0..input_neurons.len() {
             draw_circle(
-                -250.0 + i as f32 * 60.0 / 2.0 - 90.0,
+                // -250.0 + i as f32 * 60.0 / (400.0 / INPUT_NEURON_COUNT as f32 / 20.0) - 75.0,
+                NETWORK_OFFSET_X + i as f32 * 60.0 * (7.0 / INPUT_NEURON_COUNT as f32) - 60.0,
                 self.opts.y,
                 10.0,
                 Color {

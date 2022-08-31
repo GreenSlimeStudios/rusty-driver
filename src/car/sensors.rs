@@ -13,10 +13,10 @@ pub struct Sensors {
 }
 
 impl Sensors {
-    pub fn new(car: CarOptions) -> Self {
+    pub fn new(car: CarOptions, ray_count: i8) -> Self {
         Self {
             car_options: car,
-            ray_count: 13,
+            ray_count,
             ray_length: 200.0,
             ray_spread: std::f32::consts::PI / 1.5,
             rays: Vec::new(),

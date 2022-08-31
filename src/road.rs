@@ -65,7 +65,7 @@ impl Road {
             let x = lerp(self.left, self.right, i as f32 / self.lane_count as f32);
             draw_line(x, self.top, x, self.bottom, 7.0, WHITE);
         }
-        for i in 0..((screen_height()).round() as i32) {
+        for i in 0..600 {
             draw_line(
                 self.left + 30.0,
                 -(i * 80) as f32 + screen_height(),
