@@ -18,6 +18,8 @@ use rand::*;
 
 const BATCH_SIZE: usize = 100;
 const TRAFFIC_SIZE: usize = 50;
+const LANE_COUNT: usize = 5;
+const CAR_SPACING: f32 = 300.0;
 
 fn window_conf() -> Conf {
     Conf {
@@ -35,7 +37,11 @@ async fn main() {
     let mut show_sensors: bool = true;
     let texture: Texture2D = load_texture("assets/car.png").await.unwrap();
 
-    let mut road: Road = Road::new(700.0 / 2.0, 320.0, 4);
+    let mut road: Road = Road::new(
+        700.0 / 2.0,
+        40.0 * LANE_COUNT as f32 * 2.0,
+        LANE_COUNT as i8,
+    );
     let mut my_camera = Camera2D::default();
     // my_camera.viewport = Some((
     //     0,
@@ -179,20 +185,20 @@ async fn main() {
 
 fn generate_traffic(traffic: &mut Vec<Car>, road: &mut Road) {
     for i in 0..TRAFFIC_SIZE {
-        let road_index: i8 = rand::thread_rng().gen_range(0..4) as i8;
+        let road_index: i8 = rand::thread_rng().gen_range(0..LANE_COUNT) as i8;
 
         traffic.push(Car::new(
             road.get_lane_center(road_index) as f32 - 20.0,
-            -300.0 - 200.0 * i as f32,
+            -300.0 - CAR_SPACING * i as f32,
             40.0,
             80.0,
             false,
         ));
-        let road_index2: i8 = rand::thread_rng().gen_range(0..4) as i8;
+        let road_index2: i8 = rand::thread_rng().gen_range(0..LANE_COUNT) as i8;
 
         traffic.push(Car::new(
             road.get_lane_center(road_index2) as f32 - 20.0,
-            -300.0 - 200.0 * i as f32,
+            -300.0 - CAR_SPACING * i as f32,
             40.0,
             80.0,
             false,
@@ -206,7 +212,7 @@ fn generate_traffic(traffic: &mut Vec<Car>, road: &mut Road) {
                     road_index2
                 }) as f32
                     - 20.0,
-                -300.0 - 200.0 * i as f32,
+                -300.0 - CAR_SPACING * i as f32,
                 40.0 * 3.0,
                 80.0,
                 false,
