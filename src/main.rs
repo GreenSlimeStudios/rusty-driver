@@ -4,6 +4,8 @@ pub mod road;
 use car::network::*;
 use car::*;
 use road::*;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 use macroquad::{
     prelude::{
@@ -132,6 +134,33 @@ async fn main() {
 
         clear_background(BLACK);
 
+        //MY ATTEMPT AT MAKING IT MULTITHREADED
+        //START HERE
+        // let mut handles = vec![];
+        // for i in 0..4 {
+        //     let cars_copy: Vec<Car> = cars.clone();
+        //     let borders = road.borders.clone();
+        //     let traffic_clone = traffic.clone();
+        //     let handle = thread::spawn(move || {
+        //         let mut new_cars: Vec<Car> = Vec::new();
+        //         for j in 0..25 {
+        //             let mut car = cars_copy[i * 4 + j].clone();
+        //             car.update(&borders, &traffic_clone, false);
+        //             new_cars.push(car);
+        //         }
+
+        //         return new_cars;
+        //     });
+        //     handles.push(handle);
+        // }
+        // cars.clear();
+        // for handle in handles {
+        //     let result = handle.join().unwrap();
+        //     cars.extend(result);
+        //     // cars[result.1] = result.0;
+        // }
+        //END HERE
+
         for i in 0..cars.len() {
             if i == index {
                 cars[i].update(&road.borders, &traffic, true);
@@ -166,19 +195,6 @@ async fn main() {
             WHITE,
         );
 
-        // set_camera(&Camera2D {
-        //     zoom: vec2(1., screen_width() / screen_height()),
-        //     ..Default::default() // offset: vec![0.0,car.y],
-        // });
-
-        // let rotation = car.angle.to_radians();
-        // let rot_vec = Vec2::new(rotation.sin(), -rotation.cos());
-
-        // draw_line(40.0, 40.0, 100.0, 200.0, 15.0, BLUE);
-        // draw_rectangle(screen_width() / 2.0 - 60.0, 100.0, 120.0, 60.0, GREEN);
-        // draw_circle(screen_width() - 30.0, screen_height() - 30.0, 15.0, YELLOW);
-
-        // draw_text("HELLO", 20.0, 20.0, 30.0, DARKGRAY);
         next_frame().await
     }
 }

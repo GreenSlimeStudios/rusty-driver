@@ -44,7 +44,9 @@ impl Network {
             //weights
             for j in 0..self.layers[i].weights.len() {
                 for k in 0..self.layers[i].weights[j].len() {
-                    self.layers[i].weights[j][k] += rand::thread_rng().gen_range(-10.0..10.0) / 2.0;
+                    // self.layers[i].weights[j][k] += rand::thread_rng().gen_range(-10.0..10.0) / 2.0;
+                    self.layers[i].weights[j][k] +=
+                        macroquad::prelude::rand::gen_range(-10.0, 10.0) / 2.0;
                 }
             }
             // for j in 0..self.layers[i].neurons.len() {

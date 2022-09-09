@@ -2,6 +2,7 @@ use crate::car::Car;
 use crate::car::CarOptions;
 use macroquad::prelude::*;
 
+#[derive(Clone)]
 pub struct Sensors {
     car_options: CarOptions,
     ray_count: i8,
@@ -18,7 +19,7 @@ impl Sensors {
             car_options: car,
             ray_count,
             ray_length: 200.0,
-            ray_spread: std::f32::consts::PI / 1.5,
+            ray_spread: std::f32::consts::PI / 1.2,
             rays: Vec::new(),
             readings: Vec::new(),
             active: true,

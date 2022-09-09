@@ -18,6 +18,7 @@ const TIME_MULTIPLIER: f32 = 1.0;
 
 const NETWORK_OFFSET_X: f32 = -270.0;
 
+#[derive(Clone)]
 pub struct Car {
     pub opts: CarOptions,
     pub sensors: Sensors,
