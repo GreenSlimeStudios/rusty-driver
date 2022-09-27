@@ -35,6 +35,8 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut is_sensor_key_down: bool = false;
+    let mut is_kill_key_down: bool = false;
     let mut generation_count: u32 = 1;
     let mut show_sensors: bool = true;
     let texture: Texture2D = load_texture("assets/car.png").await.unwrap();
@@ -69,7 +71,12 @@ async fn main() {
     let mut are_all_dmaged: bool = true;
     loop {
         if is_key_down(macroquad::prelude::KeyCode::E) {
-            show_sensors = !show_sensors;
+            if is_sensor_key_down == false {
+                show_sensors = !show_sensors;
+                is_sensor_key_down = true;
+            }
+        } else {
+            is_sensor_key_down = false;
         }
 
         let mut index: usize = 0;
@@ -85,8 +92,16 @@ async fn main() {
                 are_all_dmaged = false;
             }
         }
+        // if is_key_down(macroquad::prelude::KeyCode::R) {
+        //     are_all_dmaged = true;
+        // }
         if is_key_down(macroquad::prelude::KeyCode::R) {
-            are_all_dmaged = true;
+            if is_kill_key_down == false {
+                are_all_dmaged = true;
+                is_kill_key_down = true;
+            }
+        } else {
+            is_kill_key_down = false;
         }
         // println!("overall {}", are_all_dmaged);
         if are_all_dmaged {

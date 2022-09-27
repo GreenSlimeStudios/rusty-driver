@@ -12,7 +12,7 @@ use sensors::*;
 
 const LAYER_COUNT: i8 = 3;
 const LAYER_NEURON_COUNT: i8 = 5;
-const INPUT_NEURON_COUNT: i8 = 12;
+const INPUT_NEURON_COUNT: i8 = 10;
 
 const TIME_MULTIPLIER: f32 = 1.0;
 
